@@ -47,12 +47,13 @@
 ### 实验环境
 
 ||||
-|--------|--------------|--------------------------|
-|硬件环境|CPU（vCPU数目）|&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; |
-||GPU(型号，数目)||
-|软件环境|OS版本||
-||深度学习框架<br>python包名称及版本||
-||CUDA版本||
+|--------|--------------|-------------------------------------------------------|
+|硬件环境|CPU（vCPU数目）| Number of Processors:	1 Total Number of Cores:	2 |
+||GPU(型号，数目)|NA||
+|软件环境|OS版本|Darwin lijiahaodeMacBook-Pro-2.local 21.6.0 Darwin Kernel Version 21.6.0: Mon Aug 22 20:17:10 PDT 2022; root:xnu-8020.140.49~2/RELEASE_X86_64 x86_64||
+||深度学习框架<br>python包名称及版本|$ python3 -c "import torch; print(torch.__version__)" 1.9.1  
+|||$ python3 -c "import tensorflow as tf; print(tf.__version__)"2.4.0||
+||CUDA版本|NA||
 ||||
 
 ### 实验结果
@@ -61,20 +62,20 @@
    
 |||
 |---------------|---------------------------|
-|<br/>&nbsp;<br/>神经网络数据流图<br/>&nbsp;<br/>&nbsp;|&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; |
-|<br/>&nbsp;<br/>损失和正确率趋势图<br/>&nbsp;<br/>&nbsp;||
-|<br/>&nbsp;<br/>网络分析，使用率前十名的操作<br/>&nbsp;<br/>&nbsp;||
+|<br/>&nbsp;<br/>神经网络数据流图<br/>&nbsp;<br/>&nbsp;|![](/Labs/BasicLabs/Lab1//img/nn_dataflow.png "Lab1 flow chat")|
+|<br/>&nbsp;<br/>损失和正确率趋势图<br/>&nbsp;<br/>&nbsp;|![](/Labs/BasicLabs/Lab1//img/loss_acc.png "Lab1 flow chat")|
+|<br/>&nbsp;<br/>网络分析，使用率前十名的操作<br/>&nbsp;<br/>&nbsp;|![](/Labs/BasicLabs/Lab1//img/nn_profiling.png "Lab1 flow chat")|
 ||||
 
 
-2. 网络分析，不同批大小结果比较
+1. 网络分析，不同批大小结果比较
 
 |||
 |------|--------------|
 |批大小 &nbsp;| &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 结果比较 &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; |
-|<br/>&nbsp;<br/>1<br/>&nbsp;<br/>&nbsp;||
-|<br/>&nbsp;<br/>16<br/>&nbsp;<br/>&nbsp;||
-|<br/>&nbsp;<br/>64<br/>&nbsp;<br/>&nbsp;||
+|<br/>&nbsp;<br/>1<br/>&nbsp;<br/>&nbsp;|NA||
+|<br/>&nbsp;<br/>16<br/>&nbsp;<br/>&nbsp;|NA||
+|<br/>&nbsp;<br/>64<br/>&nbsp;<br/>&nbsp;|NA||
 |||
 
 ## 参考代码
