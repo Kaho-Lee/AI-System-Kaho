@@ -30,21 +30,68 @@
 
 from __future__ import print_function
 import argparse
-from tokenize import String
+from doctest import OutputChecker
+from pyclbr import Function
+from tkinter.messagebox import NO
+from turtle import forward
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-import torchvision
-import torchvision.models as models
 from torchvision import datasets, transforms
 from torch.optim.lr_scheduler import StepLR
 
-from torch.utils.tensorboard import SummaryWriter
+from six.moves import urllib
+opener = urllib.request.build_opener()
+opener.addheaders = [('User-agent', 'Mozilla/5.0')]
+urllib.request.install_opener(opener)
 
-# default `log_dir` is "runs" - we'll be more specific here
-writer = SummaryWriter('logs/lab1_mnist_experiment')
+class KHLinearFunction(torch.autograd.Function):
 
+    @staticmethod
+    def forward(ctx, input, weight, bias=None):
+        ctx.save_for_backward(input, weight, bias)
+        output = input.mm(weight.t()) #Get the traspose of weight
+        if bias is not None:
+            output += bias.unsqueeze(0).expand_as(output)
+        return output
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        input, weight, bias = ctx.saved_tensors
+        grad_input = grad_weight = grad_bias = None
+
+        grad_input = grad_output.mm(weight)
+        grad_weight = grad_output.t().mm(input)
+        grad_bias = grad_output.sum(0)
+
+        return grad_input, grad_weight, grad_bias
+
+class KHLinear(nn.Module):
+
+    def __init__(self, input_features, output_features, bias=True):
+        super(KHLinear, self).__init__()
+        self.input_features = input_features
+        self.output_features = output_features
+
+        self.weight = nn.Parameter(torch.empty(output_features, input_features))
+        if bias:
+            self.bias = nn.Parameter(torch.empty(output_features))
+        else:
+            self.register_parameter('bias', None)
+            self.bias = None
+
+        nn.init.uniform_(self.weight, -0.1, 0.1)
+        if self.bias is not None:
+            nn.init.uniform_(self.bias, -0.1, 0.1)
+        
+    def forward(self, input):
+        return KHLinearFunction.apply(input, self.weight, self.bias)
+
+    def extra_repr(self):
+        return 'input_features={}, output_features={}, bias={}'.format(
+            self.input_features, self.output_features, self.bias if self.bias is not None else None
+        )
 
 class Net(nn.Module):
     def __init__(self):
@@ -53,8 +100,8 @@ class Net(nn.Module):
         self.conv2 = nn.Conv2d(32, 64, 3, 1)
         self.dropout1 = nn.Dropout2d(0.25)
         self.dropout2 = nn.Dropout2d(0.5)
-        self.fc1 = nn.Linear(9216, 128)
-        self.fc2 = nn.Linear(128, 10)
+        self.fc1 = KHLinear(9216, 128)
+        self.fc2 = KHLinear(128, 10)
 
     def forward(self, x):
         x = self.conv1(x)
@@ -74,11 +121,6 @@ class Net(nn.Module):
 
 def train(args, model, device, train_loader, optimizer, epoch):
     model.train()
-
-    # initialize the running loss for visualization
-    training_loss = 0.0
-    accuracy = 0.0
-
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.to(device), target.to(device)
         optimizer.zero_grad()
@@ -86,63 +128,29 @@ def train(args, model, device, train_loader, optimizer, epoch):
         loss = F.nll_loss(output, target)
         loss.backward()
         optimizer.step()
-
-        training_loss += loss.item()
-        pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
-        accuracy += pred.eq(target.view_as(pred)).sum().item()
-
         if batch_idx % args.log_interval == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, batch_idx * len(data), len(train_loader.dataset),
                 100. * batch_idx / len(train_loader), loss.item()))
-            if batch_idx != 0:
-                global_step = (epoch - 1) * len(train_loader) + batch_idx
-                writer.add_scalar('Loss/train', training_loss / (args.batch_size * args.log_interval), global_step)
-                writer.add_scalar('Accuracy/train', 100. * accuracy / (args.batch_size * args.log_interval), global_step)
-            training_loss = 0.0
-            accuracy = 0.0
 
 
 def test(model, device, test_loader):
     model.eval()
     test_loss = 0
     correct = 0
-
-    class_probs = []
-    class_label = []
-
     with torch.no_grad():
         for data, target in test_loader:
             data, target = data.to(device), target.to(device)
             output = model(data)
-
-            class_probs_batch = [F.softmax(el, dim=0) for el in output]
-            class_probs.append(class_probs_batch)
-            class_label.append(target)
-
             test_loss += F.nll_loss(output, target, reduction='sum').item()  # sum up batch loss
             pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
             correct += pred.eq(target.view_as(pred)).sum().item()
 
     test_loss /= len(test_loader.dataset)
 
-    test_probs = torch.cat([torch.stack(batch) for batch in class_probs])
-    test_label = torch.cat(class_label)
-
     print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
         test_loss, correct, len(test_loader.dataset),
         100. * correct / len(test_loader.dataset)))
-
-    # plot all the pr curves
-    for i in range(10):
-        tensorboard_truth = test_label == i
-        tensorboard_probs = test_probs[:, i]
-
-        writer.add_pr_curve(str(i),
-                        tensorboard_truth,
-                        tensorboard_probs,
-                        0)
-        writer.close()
 
 
 def main():
@@ -189,25 +197,12 @@ def main():
                        ])),
         batch_size=args.test_batch_size, shuffle=True, **kwargs)
 
-    # get some random training images
-    dataiter = iter(train_loader)
-    images, labels = dataiter.next()
-
-    # create grid of images
-    img_grid = torchvision.utils.make_grid(images)
-
-    # write to tensorboard
-    writer.add_image('mnist_images_grid', img_grid, 0)
-
     model = Net().to(device)
     optimizer = optim.Adadelta(model.parameters(), lr=args.lr)
 
-    writer.add_graph(model, images)
-    writer.close()
-
     scheduler = StepLR(optimizer, step_size=1, gamma=args.gamma)
 
-    # profiling model
+     # profiling model
     print("Start profiling...")
     dataiter = iter(train_loader)
     images, labels = dataiter.next()

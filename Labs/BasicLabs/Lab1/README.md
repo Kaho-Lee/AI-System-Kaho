@@ -62,9 +62,9 @@
    
 |||
 |---------------|---------------------------|
-|<br/>&nbsp;<br/>神经网络数据流图<br/>&nbsp;<br/>&nbsp;|![](/Labs/BasicLabs/Lab1//img/nn_dataflow.png "Lab1 flow chat")|
-|<br/>&nbsp;<br/>损失和正确率趋势图<br/>&nbsp;<br/>&nbsp;|![](/Labs/BasicLabs/Lab1//img/loss_acc.png "Lab1 flow chat")|
-|<br/>&nbsp;<br/>网络分析，使用率前十名的操作<br/>&nbsp;<br/>&nbsp;|![](/Labs/BasicLabs/Lab1//img/nn_profiling.png "Lab1 flow chat")|
+|<br/>&nbsp;<br/>神经网络数据流图<br/>&nbsp;<br/>&nbsp;|![](/Labs/BasicLabs/Lab1//img/nn_dataflow.png "Lab1 flow chart")|
+|<br/>&nbsp;<br/>损失和正确率趋势图<br/>&nbsp;<br/>&nbsp;|![](/Labs/BasicLabs/Lab1//img/loss_acc.png "Lab1 loss and accuracy")|
+|<br/>&nbsp;<br/>网络分析，使用率前十名的操作<br/>&nbsp;<br/>&nbsp;|![](/Labs/BasicLabs/Lab1//img/nn_profiling.png "Lab1 nn profiling")|
 ||||
 
 
