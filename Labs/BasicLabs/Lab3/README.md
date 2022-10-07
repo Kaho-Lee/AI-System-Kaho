@@ -65,7 +65,7 @@
 |---------------|---------------------------|-----------|
 | 实现方式（Linear层为例）| &nbsp; &nbsp; &nbsp; &nbsp; 性能评测 |Comment|
 |<br/> <br/>CPU only<br/> <br/>&nbsp;|![](/Labs/BasicLabs/Lab3/img/Cpp_Linear.png "Lab3 Cpp Linear Layer profiling") |NA|
-|<br/> <br/>With CUDA<br/> <br/>&nbsp;|![](/Labs/BasicLabs/Lab3/img/Cuda_Gpu.png "Lab3 Cuda Linear Layer profiling")|Launch Kernel and Cuda Free take a long time|
+|<br/> <br/>With CUDA<br/> <br/>&nbsp;|![](/Labs/BasicLabs/Lab3/img/Cuda_GPU.png "Lab3 Cuda Linear Layer profiling")|Launch Kernel and Cuda Free take a long time|
 |||||
 
 ## 参考代码
