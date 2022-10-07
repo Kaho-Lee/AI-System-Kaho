@@ -139,7 +139,7 @@ def main():
                         help='input batch size for training (default: 64)')
     parser.add_argument('--test-batch-size', type=int, default=1000, metavar='N',
                         help='input batch size for testing (default: 1000)')
-    parser.add_argument('--epochs', type=int, default=14, metavar='N',
+    parser.add_argument('--epochs', type=int, default=2, metavar='N',
                         help='number of epochs to train (default: 14)')
     parser.add_argument('--lr', type=float, default=1.0, metavar='LR',
                         help='learning rate (default: 1.0)')
@@ -180,6 +180,19 @@ def main():
     optimizer = optim.Adadelta(model.parameters(), lr=args.lr)
 
     scheduler = StepLR(optimizer, step_size=1, gamma=args.gamma)
+
+    # profiling model
+    print("Start profiling...")
+    dataiter = iter(train_loader)
+    images, labels = dataiter.next()
+    images, labels = images.to(device), labels.to(device)
+
+    with torch.autograd.profiler.profile(use_cuda=False) as prof:
+        output = model(images[0].reshape(1,1,28,28))
+    print(prof) 
+
+    print("Finished profiling.")
+
     for epoch in range(1, args.epochs + 1):
         train(args, model, device, train_loader, optimizer, epoch)
         test(model, device, test_loader)

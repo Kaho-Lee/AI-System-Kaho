@@ -68,9 +68,9 @@
 |||
 |---------------|---------------------------|
 | 实现方式（Linear层为例）| &nbsp; &nbsp; &nbsp; &nbsp; 性能评测 |
-|<br/> <br/>PyTorch原有张量运算<br/> <br/>&nbsp;|![](/Labs/BasicLabs/Lab2//img/nn_profiling.png "Lab2 Pytorch API profiling")|
-|<br/> <br/>基于Python API的定制化张量运算<br/> <br/>&nbsp;|![](/Labs/BasicLabs/Lab2//img/nn_profiling_custom_linear.png "Lab2 Pytorch Custom Linear profiling")|
-|<br/> <br/>基于C++的定制化张量运算<br/> <br/>&nbsp;|![](/Labs/BasicLabs/Lab2//img/nn_profiling_custom_linear_cpp.png "Lab2 Pytorch Custom Linear profiling")|
+|<br/> <br/>PyTorch原有张量运算<br/> <br/>&nbsp;|![](/Labs/BasicLabs/Lab2/img/nn_profiling.png "Lab2 Pytorch API profiling")|
+|<br/> <br/>基于Python API的定制化张量运算<br/> <br/>&nbsp;|![](/Labs/BasicLabs/Lab2/img/nn_profiling_custom_linear.png "Lab2 Pytorch Custom Linear profiling")|
+|<br/> <br/>基于C++的定制化张量运算<br/> <br/>&nbsp;|![](/Labs/BasicLabs/Lab2/img/nn_profiling_custom_linear_cpp.png "Lab2 Pytorch Custom Linear profiling")|
 ||||
 
 ## 参考代码

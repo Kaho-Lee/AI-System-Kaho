@@ -202,7 +202,7 @@ def main():
 
     scheduler = StepLR(optimizer, step_size=1, gamma=args.gamma)
 
-     # profiling model
+    # profiling model
     print("Start profiling...")
     dataiter = iter(train_loader)
     images, labels = dataiter.next()

@@ -39,34 +39,55 @@ import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.optim.lr_scheduler import StepLR
 
-class myLinearFunction(torch.autograd.Function):
-    # Note that both forward and backward are @staticmethods
+#import our c++ module
+import KHlinear_cuda
+
+class KHLinearCudaFunction(torch.autograd.Function):
+
     @staticmethod
-    def forward(ctx, input, weight):
-        ctx.save_for_backward(input, weight)
-        output = input.mm(weight.t())
-        return output
-        
+    def forward(ctx, input, weights, bias=None):
+        ctx.save_for_backward(input, weights, bias)
+
+        if bias is not None:
+            output = KHlinear_cuda.forward(input, weights, bias)
+        else:
+            output = KHlinear_cuda.forward(input, weights, torch.zeros(weights.size()[0]))
+
+        return output[0]
+
     @staticmethod
     def backward(ctx, grad_output):
-        input, weight = ctx.saved_tensors
-        grad_input = grad_weight = None
-        #if ctx.needs_input_grad[0]:
-        grad_input = grad_output.mm(weight)
-        #if ctx.needs_input_grad[1]:
-        grad_weight = grad_output.t().mm(input)
-        return grad_input, grad_weight
+        input, weight, bias = ctx.saved_tensors
+        grad_input = grad_weight = grad_bias = None
 
-class myLinear(nn.Module):
-    def __init__(self, input_features, output_features):
-        super(myLinear, self).__init__()
+        grad_input, grad_weight, grad_bias = KHlinear_cuda.backward(grad_output, input, weight, bias)
+        return grad_input, grad_weight, grad_bias
+
+class KHCudaLinear(nn.Module):
+
+    def __init__(self, input_features, output_features, bias=True):
+        super(KHCudaLinear, self).__init__()
         self.input_features = input_features
         self.output_features = output_features
-        self.weight = nn.Parameter(torch.Tensor(output_features, input_features))
+
+        self.weight = nn.Parameter(torch.empty(output_features, input_features))
+        if bias:
+            self.bias = nn.Parameter(torch.empty(output_features))
+        else:
+            self.register_parameter('bias', None)
+            self.bias = None
+
         self.weight.data.uniform_(-0.1, 0.1)
-    
+        if self.bias is not None:
+            self.bias.data.uniform_(-0.1, 0.1)
+        
     def forward(self, input):
-        return myLinearFunction.apply(input, self.weight)
+        return KHLinearCudaFunction.apply(input, self.weight, self.bias)
+
+    def extra_repr(self):
+        return 'input_features={}, output_features={}, bias={}'.format(
+            self.input_features, self.output_features, self.bias if self.bias is not None else None
+        )
 
 class Net(nn.Module):
     def __init__(self):
@@ -75,9 +96,9 @@ class Net(nn.Module):
         self.conv2 = nn.Conv2d(32, 64, 3, 1)
         self.dropout1 = nn.Dropout2d(0.25)
         self.dropout2 = nn.Dropout2d(0.5)
-        self.fc1 = nn.Linear(9216, 128)
+        self.fc1 = KHCudaLinear(9216, 128)
         # self.fc2 = nn.Linear(128, 10)
-        self.fc2 = myLinear(128, 10)
+        self.fc2 = KHCudaLinear(128, 10)
 
     def forward(self, x):
         x = self.conv1(x)
@@ -189,7 +210,7 @@ def main():
     print(prof) 
 
     print("Finished profiling.")
-  
+
     for epoch in range(1, args.epochs + 1):
         train(args, model, device, train_loader, optimizer, epoch)
         test(model, device, test_loader)

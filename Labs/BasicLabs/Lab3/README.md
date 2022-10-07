@@ -52,21 +52,21 @@
 
 ||||
 |--------|--------------|--------------------------|
-|硬件环境|CPU（vCPU数目）|&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; |
-||GPU(型号，数目)||
-|软件环境|OS版本||
-||深度学习框架<br>python包名称及版本||
-||CUDA版本||
+|硬件环境|CPU（vCPU数目）|Number of Processors:	1 Total Number of Cores:	2 Intel(R) Xeon(R) CPU @ 2.30GHz |
+||GPU(型号，数目)|Tesla T4 (from Google Colab)|
+|软件环境|OS版本|Linux d985e3f0b02a 5.10.133+ #1 SMP Fri Aug 26 08:44:51 UTC 2022 x86_64 x86_64 x86_64 GNU/Linux|
+||深度学习框架<br>python包名称及版本|torch 1.12.1+cu113 Tensorflow 2.8.2|
+||CUDA版本|11.2|
 ||||
 
 ### 实验结果
 
-|||
-|---------------|---------------------------|
-| 实现方式（Linear层为例）| &nbsp; &nbsp; &nbsp; &nbsp; 性能评测 |
-|<br/> <br/>CPU only<br/> <br/>&nbsp;|&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; |
-|<br/> <br/>With CUDA<br/> <br/>&nbsp;||
 ||||
+|---------------|---------------------------|-----------|
+| 实现方式（Linear层为例）| &nbsp; &nbsp; &nbsp; &nbsp; 性能评测 |Comment|
+|<br/> <br/>CPU only<br/> <br/>&nbsp;|![](/Labs/BasicLabs/Lab3/img/Cpp_Linear.png "Lab3 Cpp Linear Layer profiling") |NA|
+|<br/> <br/>With CUDA<br/> <br/>&nbsp;|![](/Labs/BasicLabs/Lab3/img/Cuda_Gpu.png "Lab3 Cuda Linear Layer profiling")|Launch Kernel and Cuda Free take a long time|
+|||||
 
 ## 参考代码
 

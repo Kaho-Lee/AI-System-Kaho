@@ -53,7 +53,7 @@ class KHLinearCppFunction(torch.autograd.Function):
         if bias is not None:
             output = KHlinear_cpp.forward(input, weights, bias)
         else:
-            output = KHlinear_cpp.forward(input, weights, torch.zeros(input.size()[0], weights.size()[0]))
+            output = KHlinear_cpp.forward(input, weights, torch.zeros(weights.size()[0]))
 
         return output[0]
 
