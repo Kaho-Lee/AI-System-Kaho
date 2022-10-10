@@ -30,3 +30,4 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME,m) {
     m.def("forward", &KHlinear_forward, "KHlinear forward");
     m.def("backward", &KHlinear_backward, "KHlinear backward");
 }
+

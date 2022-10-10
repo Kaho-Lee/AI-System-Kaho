@@ -55,33 +55,38 @@
 
 ||||
 |--------|--------------|--------------------------|
-|硬件环境|服务器数目|&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; |
-||网卡型号、数目||
-||GPU型号、数目||
-||GPU连接方式||
-|软件环境|OS版本||
-||GPU driver、(opt. NIC driver)||
-||深度学习框架<br>python包名称及版本||
-||CUDA版本||
+|硬件环境|服务器数目|1 |
+||CPU（vCPU数目）|Number of Processors:	1 Total Number of Cores:	2 Intel(R) Xeon(R) CPU @ 2.20GHz |
+||网卡型号、数目|NA|
+||GPU型号、数目|Tesla T4, 1 (From Colab)|
+||GPU连接方式|NA|
+|软件环境|OS版本|Linux f60fac05a5dc 5.10.133+ #1 SMP Fri Aug 26 08:44:51 UTC 2022 x86_64 x86_64 x86_64 GNU/Linux|
+||GPU driver、(opt. NIC driver)|GPU Driver 460.32.03|
+||深度学习框架<br>python包名称及版本|torch 1.12.1+cu113 Tensorflow 2.8.2|
+||CUDA版本|11.2|
 ||||
 
 ### 实验结果
 
 比较原始串行训练，用Horovod并行训练，加入压缩算法三者，在同样epoch条件下的训练时间和结果正确率。
 
-Epoch size: ___________
+Epoch size: ______10_____
+Batch size: ______64_____
+Test size: ______1000_____
+Learning rate: ______0.001_____
+Optimizer: ___Adam___
 
-|||||
-|-----|-----|-----|-----|
-| 训练算法 || &nbsp; &nbsp; &nbsp; &nbsp; 训练时间 &nbsp; &nbsp; &nbsp; &nbsp; | &nbsp; &nbsp; &nbsp; &nbsp; 结果正确率 &nbsp; &nbsp; &nbsp; &nbsp; |
-|串行训练||||
-| 用Horovod并行 | Device# == 2 |||
-||Device# == 4|||
-| float8(8bit)压缩 | Device# == 2 |||
-|| Device# == 4 |||
-| float16(16bit)压缩 | Device# == 2 |||
-|| Device# == 4 |||
-|||||
+||||||
+|-----|-----|-----|-----|-------|
+| 训练算法 || &nbsp; &nbsp; &nbsp; &nbsp; 训练时间 &nbsp; &nbsp; &nbsp; &nbsp; | &nbsp; &nbsp; &nbsp; &nbsp; 结果正确率 &nbsp; &nbsp; &nbsp; &nbsp; |Comment|
+|串行训练||148.5785s|99.26%||
+| 用Horovod并行 | Device# == 2 |314.7479s|99.08%|The learning rate in parallel works should be tuned to imporve the accuracy.|
+||Device# == 3|427.266s|99.00%|There is only 1 GPU in Colab. And at most 3 parallel works can fit into the 1 GPU in colab|
+| float8(8bit)压缩 | Device# == 2 |837.9122s|10.28%|Casting float points into 8bit floating point loss lots of gradient information. There is no effective learning The implementation given by the "bit8,bit16.git_diff" is not efficient. Thus, the training time is also longer.|
+|| Device# == 3 |1385.597s|9.58%|The correctness of casting down to 8bits should be re-checked.|
+| float16(16bit)压缩 | Device# == 2 | 287.6315s |99.04%|Casting down the floating point to 16bits floating point using the the type conversion API in pyotrch can help shortening the training time.|
+|| Device# == 3 |346.1366s|99.03%||
+||||||
 
 ## 参考代码
 
