@@ -65,6 +65,7 @@
 1.	使用Docker部署PyTorch MNIST 训练程序，以交互的方式在容器中运行训练程序。提交以下内容：
 
     1. 创建模型训练镜像，并提交Dockerfile
+   
     #docker build  -f mnist_docker_train -t docker_model_train .
     [+] Building 1.4s (14/14) FINISHED                                                                                                                     
  => [internal] load build definition from mnist_docker_train                                                                                      0.0s
@@ -86,9 +87,12 @@
  => exporting to image                                                                                                                            0.0s
  => => exporting layers                                                                                                                           0.0s
  => => writing image sha256:e5af7a163762f3d32559403193708bd12db07e18a58bbcef3f495653a6ee8181                                                      0.0s
- => => naming to docker.io/library/docker_model_train                       
+ => => naming to docker.io/library/docker_model_train
+
     2. 提交镜像构建成功的日志
-    docker run -p 80:80 --name training docker_model_train
+    
+    #docker run -p 80:80 --name training docker_model_train
+
     3. 启动训练程序，提交训练成功日志（例如：MNIST训练日志截图）
     ![](/Labs/BasicLabs/Lab5/img/docker_mnist_train_start.png "Lab5 Docker Training Start")
     Docker Training Start
@@ -106,8 +110,11 @@
 
 2.	使用Docker部署MNIST模型的推理服务，并进行推理。提交以下内容：
     1. 创建模型推理镜像，并提交Dockerfile
+   
     #docker build --file Dockerfile.infer.cpu -t torchserve:0.1-cpu .
-    1. 启动容器，访问TorchServe API，提交返回结果日志
+
+    2. 启动容器，访问TorchServe API，提交返回结果日志
+   
     #docker run --rm -it -p 8080:8080 -p 8081:8081 torchserve:0.1-cpu
     WARNING: sun.reflect.Reflection.getCallerClass is not supported. This will impact performance.
     2022-10-23T20:57:34,081 [INFO ] main org.pytorch.serve.servingsdk.impl.PluginsManager - Initializing plugins manager...
@@ -142,27 +149,46 @@
     Enable metrics API: true
     Workflow Store: /home/model-server/model-store
     Model config: N/A
-    1. 使用训练好的模型，启动TorchServe，在新的终端中，使用一张图片进行推理服务。提交图片和推理程序返回结果截图。
+
+    3. 使用训练好的模型，启动TorchServe，在新的终端中，使用一张图片进行推理服务。提交图片和推理程序返回结果截图。
+
    #docker ps
     CONTAINER ID   IMAGE                COMMAND                  CREATED         STATUS         PORTS                              NAMES
     8a14460188d5   torchserve:0.1-cpu   "/usr/local/bin/dock…"   2 minutes ago   Up 2 minutes   0.0.0.0:8080-8081->8080-8081/tcp   thirsty_leakey
+
    #docker exec -it 8a14460188d5 /bin/bash
+   
    #history 16
     7  cd  /home/model-server/model-store/
+    
     8  apt-get update  
+    
     9  apt-get install wget
+   
    10  wget https://download.pytorch.org/models/densenet161-8d451a50.pth
+   
    11  cd /serve/model-archiver
+   
    12  pip install .
+   
    13  LS
+   
    14  ls
+   
    15  torch-model-archiver --model-name densenet161 --version 1.0 --model-file /serve/examples/image_classifier/densenet_161/model.py --serialized-file /home/model-server/model-store/densenet161-8d451a50.pth --export-path /home/model-server/model-store --extra-files /serve/examples/image_classifier/index_to_name.json --handler image_classifier
+   
    16  ls
+   
    17  torchserve --stop
+   
    18  cd /home/model-server/
+   
    19  torchserve --start --ncs --model-store model-store --models densenet161.mar
+   
    20  history 10
+   
    21  history 20
+   
    22  history 16
     ![](/Labs/BasicLabs/Lab5/img/Kitten_Inference.png "Lab5 Docker Inference")
     Docker Inference
