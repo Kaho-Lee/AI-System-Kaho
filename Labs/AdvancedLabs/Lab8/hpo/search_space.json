@@ -1,0 +1,30 @@
+{
+    "initial_lr": {
+        "_type": "uniform",
+        "_value": [1e-4, 0.1]
+    },
+    "weight_decay": {
+        "_type": "uniform",
+        "_value": [1e-6, 1e-3]
+    },
+    "batch_size": {
+        "_type": "choice",
+        "_value": [128]
+    },
+    "epochs": {
+        "_type": "choice",
+        "_value": [8]
+    },
+    "optimizer": {
+        "_type": "choice",
+        "_value": ["adam", "rmsprop", "sgd"]
+    },
+    "model": {
+        "_type": "choice",
+        "_value": ["resnet18"]
+    },
+    "grad_clip": {
+        "_type": "uniform",
+        "_value": [0.0, 5.0]
+    }
+}

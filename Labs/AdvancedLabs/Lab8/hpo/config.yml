@@ -1,0 +1,25 @@
+# This is the minimal config file for an NNI experiment.
+# Use "nnictl create --config config.yml" to launch this experiment.
+# Afterwards, you can check "config_detailed.yml" for more explanation.
+experimentName: lab8-cifar10-hpo
+searchSpaceFile: search_space.json
+trialCommand: python main.py
+trialGpuNumber: 0
+trialCodeDirectory: .
+
+trialConcurrency: 2
+maxTrialNumber: 20
+tuner:
+  name: TPE
+  classArgs:
+    optimize_mode: maximize
+trainingService:
+  platform: local
+  useActiveGpu: false
+
+assessor:
+    Name: Medianstop
+    classArgs:
+      optimize_mode: maximize
+      start_step: 4
+

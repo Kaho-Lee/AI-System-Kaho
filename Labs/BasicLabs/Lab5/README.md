@@ -52,12 +52,13 @@
 ### 实验环境
 
 ||||
-|--------|--------------|--------------------------|
-|硬件环境|CPU（vCPU数目）|&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; |
-||GPU(型号，数目)||
-|软件环境|OS版本||
-||深度学习框架<br>python包名称及版本||
-||CUDA版本||
+|--------|--------------|-------------------------------------------------------|
+|硬件环境|CPU（vCPU数目）| Number of Processors:	1 Total Number of Cores:	2 |
+||GPU(型号，数目)|NA||
+|软件环境|OS版本|Darwin lijiahaodeMacBook-Pro-2.local 21.6.0 Darwin Kernel Version 21.6.0: Mon Aug 22 20:17:10 PDT 2022; root:xnu-8020.140.49~2/RELEASE_X86_64 x86_64||
+||深度学习框架<br>python包名称及版本|$ python3 -c "import torch; print(torch.__version__)" 1.9.1  
+|||$ python3 -c "import tensorflow as tf; print(tf.__version__)"2.4.0||
+||CUDA版本|NA||
 ||||
 
 ### 实验结果
@@ -67,27 +68,28 @@
     1. 创建模型训练镜像，并提交Dockerfile
    
     #docker build  -f mnist_docker_train -t docker_model_train .
-    [+] Building 1.4s (14/14) FINISHED                                                                                                                     
- => [internal] load build definition from mnist_docker_train                                                                                      0.0s
- => => transferring dockerfile: 45B                                                                                                               0.0s
- => [internal] load .dockerignore                                                                                                                 0.0s
- => => transferring context: 2B                                                                                                                   0.0s
- => [internal] load metadata for docker.io/library/ubuntu:18.04                                                                                   1.3s
- => [auth] library/ubuntu:pull token for registry-1.docker.io                                                                                     0.0s
- => [1/8] FROM docker.io/library/ubuntu:18.04@sha256:40b84b75884ff39e4cac4bf62cb9678227b1fbf9dbe3f67ef2a6b073aa4bb529                             0.0s
- => [internal] load build context                                                                                                                 0.0s
- => => transferring context: 44B                                                                                                                  0.0s
- => CACHED [2/8] RUN mkdir -p /src/app                                                                                                            0.0s
- => CACHED [3/8] WORKDIR /src/app                                                                                                                 0.0s
- => CACHED [4/8] COPY pytorch_mnist_basic.py /src/app                                                                                             0.0s
- => CACHED [5/8] RUN apt-get update && apt-get install wget bzip2 -y                                                                              0.0s
- => CACHED [6/8] RUN wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh                                   0.0s
- => CACHED [7/8] RUN bash miniconda.sh -b -p /opt/conda                                                                                           0.0s
- => CACHED [8/8] RUN conda install pytorch torchvision cpuonly -c pytorch                                                                         0.0s
- => exporting to image                                                                                                                            0.0s
- => => exporting layers                                                                                                                           0.0s
- => => writing image sha256:e5af7a163762f3d32559403193708bd12db07e18a58bbcef3f495653a6ee8181                                                      0.0s
- => => naming to docker.io/library/docker_model_train
+
+        [+] Building 1.4s (14/14) FINISHED                                                                                                                     
+        => [internal] load build definition from mnist_docker_train                                                                                      0.0s
+        => => transferring dockerfile: 45B                                                                                                               0.0s
+        => [internal] load .dockerignore                                                                                                                 0.0s
+        => => transferring context: 2B                                                                                                                   0.0s
+        => [internal] load metadata for docker.io/library/ubuntu:18.04                                                                                   1.3s
+        => [auth] library/ubuntu:pull token for registry-1.docker.io                                                                                     0.0s
+        => [1/8] FROM docker.io/library/ubuntu:18.04@sha256:40b84b75884ff39e4cac4bf62cb9678227b1fbf9dbe3f67ef2a6b073aa4bb529                             0.0s
+        => [internal] load build context                                                                                                                 0.0s
+        => => transferring context: 44B                                                                                                                  0.0s
+        => CACHED [2/8] RUN mkdir -p /src/app                                                                                                            0.0s
+        => CACHED [3/8] WORKDIR /src/app                                                                                                                 0.0s
+        => CACHED [4/8] COPY pytorch_mnist_basic.py /src/app                                                                                             0.0s
+        => CACHED [5/8] RUN apt-get update && apt-get install wget bzip2 -y                                                                              0.0s
+        => CACHED [6/8] RUN wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh                                   0.0s
+        => CACHED [7/8] RUN bash miniconda.sh -b -p /opt/conda                                                                                           0.0s
+        => CACHED [8/8] RUN conda install pytorch torchvision cpuonly -c pytorch                                                                         0.0s
+        => exporting to image                                                                                                                            0.0s
+        => => exporting layers                                                                                                                           0.0s
+        => => writing image sha256:e5af7a163762f3d32559403193708bd12db07e18a58bbcef3f495653a6ee8181                                                      0.0s
+        => => naming to docker.io/library/docker_model_train
 
     2. 提交镜像构建成功的日志
     
@@ -116,92 +118,93 @@
     2. 启动容器，访问TorchServe API，提交返回结果日志
    
     #docker run --rm -it -p 8080:8080 -p 8081:8081 torchserve:0.1-cpu
-    WARNING: sun.reflect.Reflection.getCallerClass is not supported. This will impact performance.
-    2022-10-23T20:57:34,081 [INFO ] main org.pytorch.serve.servingsdk.impl.PluginsManager - Initializing plugins manager...
-    2022-10-23T20:57:34,259 [INFO ] main org.pytorch.serve.ModelServer - 
-    Torchserve version: 0.6.0
-    TS Home: /usr/local/lib/python3.7/dist-packages
-    Current directory: /home/model-server
-    Temp directory: /home/model-server/tmp
-    Number of GPUs: 0
-    Number of CPUs: 2
-    Max heap size: 984 M
-    Python executable: /usr/bin/python3
-    Config file: /home/model-server/config.properties
-    Inference address: http://0.0.0.0:8080
-    Management address: http://0.0.0.0:8081
-    Metrics address: http://127.0.0.1:8082
-    Model Store: /home/model-server/model-store
-    Initial Models: N/A
-    Log dir: /home/model-server/logs
-    Metrics dir: /home/model-server/logs
-    Netty threads: 32
-    Netty client threads: 0
-    Default workers per model: 2
-    Blacklist Regex: N/A
-    Maximum Response Size: 6553500
-    Maximum Request Size: 6553500
-    Limit Maximum Image Pixels: true
-    Prefer direct buffer: false
-    Allowed Urls: [file://.*|http(s)?://.*]
-    Custom python dependency for model allowed: false
-    Metrics report format: prometheus
-    Enable metrics API: true
-    Workflow Store: /home/model-server/model-store
-    Model config: N/A
+
+        WARNING: sun.reflect.Reflection.getCallerClass is not supported. This will impact performance.
+        2022-10-23T20:57:34,081 [INFO ] main org.pytorch.serve.servingsdk.impl.PluginsManager - Initializing plugins manager...
+        2022-10-23T20:57:34,259 [INFO ] main org.pytorch.serve.ModelServer - 
+        Torchserve version: 0.6.0
+        TS Home: /usr/local/lib/python3.7/dist-packages
+        Current directory: /home/model-server
+        Temp directory: /home/model-server/tmp
+        Number of GPUs: 0
+        Number of CPUs: 2
+        Max heap size: 984 M
+        Python executable: /usr/bin/python3
+        Config file: /home/model-server/config.properties
+        Inference address: http://0.0.0.0:8080
+        Management address: http://0.0.0.0:8081
+        Metrics address: http://127.0.0.1:8082
+        Model Store: /home/model-server/model-store
+        Initial Models: N/A
+        Log dir: /home/model-server/logs
+        Metrics dir: /home/model-server/logs
+        Netty threads: 32
+        Netty client threads: 0
+        Default workers per model: 2
+        Blacklist Regex: N/A
+        Maximum Response Size: 6553500
+        Maximum Request Size: 6553500
+        Limit Maximum Image Pixels: true
+        Prefer direct buffer: false
+        Allowed Urls: [file://.*|http(s)?://.*]
+        Custom python dependency for model allowed: false
+        Metrics report format: prometheus
+        Enable metrics API: true
+        Workflow Store: /home/model-server/model-store
+        Model config: N/A
 
     3. 使用训练好的模型，启动TorchServe，在新的终端中，使用一张图片进行推理服务。提交图片和推理程序返回结果截图。
 
    #docker ps
-    CONTAINER ID   IMAGE                COMMAND                  CREATED         STATUS         PORTS                              NAMES
-    8a14460188d5   torchserve:0.1-cpu   "/usr/local/bin/dock…"   2 minutes ago   Up 2 minutes   0.0.0.0:8080-8081->8080-8081/tcp   thirsty_leakey
+
+        CONTAINER ID   IMAGE                COMMAND                  CREATED         STATUS         PORTS                              NAMES
+        8a14460188d5   torchserve:0.1-cpu   "/usr/local/bin/dock…"   2 minutes ago   Up 2 minutes   0.0.0.0:8080-8081->8080-8081/tcp   thirsty_leakey
 
    #docker exec -it 8a14460188d5 /bin/bash
    
    #history 16
+
     7  cd  /home/model-server/model-store/
     
     8  apt-get update  
     
     9  apt-get install wget
    
-   10  wget https://download.pytorch.org/models/densenet161-8d451a50.pth
+    10  wget https://download.pytorch.org/models/densenet161-8d451a50.pth
    
-   11  cd /serve/model-archiver
+    11  cd /serve/model-archiver
    
-   12  pip install .
+    12  pip install .
    
-   13  LS
+    13  LS
    
-   14  ls
+    14  ls
    
-   15  torch-model-archiver --model-name densenet161 --version 1.0 --model-file /serve/examples/image_classifier/densenet_161/model.py --serialized-file /home/model-server/model-store/densenet161-8d451a50.pth --export-path /home/model-server/model-store --extra-files /serve/examples/image_classifier/index_to_name.json --handler image_classifier
+    15  torch-model-archiver --model-name densenet161 --version 1.0 --model-file /serve/examples/image_classifier/densenet_161/model.py --serialized-file /home/model-server/model-store/densenet161-8d451a50.pth --export-path /home/model-server/model-store --extra-files /serve/examples/image_classifier/index_to_name.json --handler image_classifier
    
-   16  ls
+    16  ls
    
-   17  torchserve --stop
+    17  torchserve --stop
    
-   18  cd /home/model-server/
+    18  cd /home/model-server/
    
-   19  torchserve --start --ncs --model-store model-store --models densenet161.mar
+    19  torchserve --start --ncs --model-store model-store --models densenet161.mar
    
-   20  history 10
+    20  history 10
    
-   21  history 20
+    21  history 20
    
-   22  history 16
-    ![](/Labs/BasicLabs/Lab5/img/Kitten_Inference.png "Lab5 Docker Inference")
-    Docker Inference
+    22  history 16
+
+
+Docker Inference
+
+![](/Labs/BasicLabs/Lab5/img/Kitten_Inference.png "Lab5 Docker Inference")
 
 <br/>
 
 <br/>
 
-<br/>
-
-<br/>
-
-<br/>
 
 ## 参考代码
 

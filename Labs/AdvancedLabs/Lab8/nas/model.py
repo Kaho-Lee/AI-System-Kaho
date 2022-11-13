@@ -1,30 +1,13 @@
-# MIT License
-
 # Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
 
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE
+from collections import OrderedDict
 
 import torch
 import torch.nn as nn
 
 import ops
-from nni.nas.pytorch import mutables
+from nni.retiarii.nn.pytorch import LayerChoice, InputChoice
 
 
 class AuxiliaryHead(nn.Module):
@@ -62,19 +45,17 @@ class Node(nn.Module):
             stride = 2 if i < num_downsample_connect else 1
             choice_keys.append("{}_p{}".format(node_id, i))
             self.ops.append(
-                mutables.LayerChoice(
-                    [
-                        ops.PoolBN('max', channels, 3, stride, 1, affine=False),
-                        ops.PoolBN('avg', channels, 3, stride, 1, affine=False),
-                        nn.Identity() if stride == 1 else ops.FactorizedReduce(channels, channels, affine=False),
-                        ops.SepConv(channels, channels, 3, stride, 1, affine=False),
-                        ops.SepConv(channels, channels, 5, stride, 2, affine=False),
-                        ops.DilConv(channels, channels, 3, stride, 2, 2, affine=False),
-                        ops.DilConv(channels, channels, 5, stride, 4, 2, affine=False)
-                    ],
-                    key=choice_keys[-1]))
+                LayerChoice(OrderedDict([
+                    ("maxpool", ops.PoolBN('max', channels, 3, stride, 1, affine=False)),
+                    ("avgpool", ops.PoolBN('avg', channels, 3, stride, 1, affine=False)),
+                    ("skipconnect", nn.Identity() if stride == 1 else ops.FactorizedReduce(channels, channels, affine=False)),
+                    ("sepconv3x3", ops.SepConv(channels, channels, 3, stride, 1, affine=False)),
+                    ("sepconv5x5", ops.SepConv(channels, channels, 5, stride, 2, affine=False)),
+                    ("dilconv3x3", ops.DilConv(channels, channels, 3, stride, 2, 2, affine=False)),
+                    ("dilconv5x5", ops.DilConv(channels, channels, 5, stride, 4, 2, affine=False))
+                ]), label=choice_keys[-1]))
         self.drop_path = ops.DropPath()
-        self.input_switch = mutables.InputChoice(choose_from=choice_keys, n_chosen=2, key="{}_switch".format(node_id))
+        self.input_switch = InputChoice(n_candidates=len(choice_keys), n_chosen=2, label="{}_switch".format(node_id))
 
     def forward(self, prev_nodes):
         assert len(self.ops) == len(prev_nodes)

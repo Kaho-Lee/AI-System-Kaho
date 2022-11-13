@@ -27,7 +27,6 @@ import os
 import pprint
 
 import numpy as np
-import nni
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -146,35 +145,26 @@ def main(args):
     for epoch in range(1, args.epochs + 1):
         train(model, train_loader, criterion, optimizer, scheduler, args, epoch, device)
         top1, _ = test(model, test_loader, criterion, args, epoch, device)
-        nni.report_intermediate_result(top1)
-        logger.debug('test accuracy %g', top1)
-
-    logger.debug("Final accuracy is: %.6f", top1)
-    nni.report_final_result(top1)
+    logger.info("Final accuracy is: %.6f", top1)
 
 
 if __name__ == '__main__':
-    # available_models = ['resnet18', 'resnet50', 'vgg16', 'vgg16_bn', 'densenet121', 'squeezenet1_1',
-    #                     'shufflenet_v2_x1_0', 'mobilenet_v2', 'resnext50_32x4d', 'mnasnet1_0']
+    available_models = ['resnet18', 'resnet50', 'vgg16', 'vgg16_bn', 'densenet121', 'squeezenet1_1',
+                        'shufflenet_v2_x1_0', 'mobilenet_v2', 'resnext50_32x4d', 'mnasnet1_0']
     parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
     parser.add_argument('--initial_lr', default=0.1, type=float, help='initial learning rate')
     parser.add_argument('--weight_decay', default=5e-4, type=float, help='weight decay')
     parser.add_argument('--ending_lr', default=0, type=float, help='ending learning rate')
     parser.add_argument('--cutout', default=0, type=int, help='cutout length in data augmentation')
     parser.add_argument('--batch_size', default=128, type=int, help='batch size')
-    parser.add_argument('--epochs', default=1, type=int, help='epochs')
+    parser.add_argument('--epochs', default=300, type=int, help='epochs')
     parser.add_argument('--optimizer', default='sgd', type=str, help='optimizer type', choices=['sgd', 'rmsprop', 'adam'])
     parser.add_argument('--momentum', default=0.9, type=int, help='optimizer momentum (ignored in adam)')
     parser.add_argument('--num_workers', default=2, type=int, help='number of workers to preprocess data')
-    parser.add_argument('--model', default='resnet18', help='the model to use')
+    parser.add_argument('--model', default='resnet18', choices=available_models, help='the model to use')
     parser.add_argument('--grad_clip', default=0., type=float, help='gradient clip (use 0 to disable)')
     parser.add_argument('--log_frequency', default=20, type=int, help='number of mini-batches between logging')
     parser.add_argument('--seed', default=42, type=int, help='global initial seed')
-    
     args = parser.parse_args()
-    tuner_params = nni.get_next_parameter()
-    logger.debug(tuner_params)
-    params = nni.utils.merge_parameter(args, tuner_params)
-    logger.debug('tunner parameter ', params)
-    main(params)
-    
+
+    main(args)
