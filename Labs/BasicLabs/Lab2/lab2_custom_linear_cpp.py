@@ -38,6 +38,7 @@ from torchvision import datasets, transforms
 from torch.optim.lr_scheduler import StepLR
 
 import KHlinear_cpp
+import KHConv_cpp
 
 from six.moves import urllib
 opener = urllib.request.build_opener()
@@ -65,6 +66,27 @@ class KHLinearCppFunction(torch.autograd.Function):
         grad_input, grad_weight, grad_bias = KHlinear_cpp.backward(grad_output, input, weight, bias)
         return grad_input, grad_weight, grad_bias
 
+class KHConvCppFunction(torch.autograd.Function):
+
+    @staticmethod
+    def forward(ctx, input, weights, bias, stride, padding):
+
+        output, col_input = KHConv_cpp.forward(input, weights, bias, stride, padding)
+        ctx.save_for_backward(input, col_input, weights, bias, stride, padding)
+
+        return output
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        input, col_input, weights, bias, stride, padding = ctx.saved_tensors
+        grad_input = grad_weight = grad_bias = None
+
+        grad_input, grad_weight, grad_bias = KHConv_cpp.backward(grad_output, input, col_input,\
+            weights, bias, stride, padding)
+
+        return grad_input, grad_weight, grad_bias,\
+            torch.zeros_like(stride), torch.zeros_like(padding)
+
 class KHCppLinear(nn.Module):
 
     def __init__(self, input_features, output_features, bias=True):
@@ -88,14 +110,44 @@ class KHCppLinear(nn.Module):
 
     def extra_repr(self):
         return 'input_features={}, output_features={}, bias={}'.format(
-            self.input_features, self.output_features, self.bias if self.bias is not None else None
+            self.input_features, self.output_features, self.bias.shape if self.bias is not None else None
+        )
+
+class KHCppConv(nn.Module):
+
+    def __init__(self, input_chanel, output_chanel, kernel_size, stride=1, padding=0):
+        super(KHCppConv, self).__init__()
+        self.input_chanel = input_chanel
+        self.output_chanel = output_chanel
+        if isinstance(kernel_size, int):
+            self.kernel_height =  torch.tensor(kernel_size, requires_grad=False)
+            self.kernel_width =  torch.tensor(kernel_size, requires_grad=False)
+        elif isinstance(kernel_size, tuple):
+            self.kernel_height =  torch.tensor(kernel_size[0], requires_grad=False)
+            self.kernel_width =  torch.tensor(kernel_size[1], requires_grad=False)
+        self.stride = torch.tensor(stride, requires_grad=False)
+        self.padding = torch.tensor(padding, requires_grad=False)
+
+        self.weight = nn.Parameter(torch.empty(self.output_chanel, self.input_chanel,\
+            self.kernel_height, self.kernel_width))
+        self.bias = nn.Parameter(torch.empty(self.output_chanel))
+
+        self.weight.data.uniform_(-0.1, 0.1)
+        self.bias.data.uniform_(-0.1, 0.1)
+        
+    def forward(self, input):
+        return KHConvCppFunction.apply(input, self.weight, self.bias, self.stride, self.padding)
+
+    def extra_repr(self):
+        return 'input_features={}, output_features={}, kernel_height={}, kernel_width={}, weight={} bias={} stride={} padding={}'.format(
+            self.input_chanel, self.output_chanel, self.kernel_height, self.kernel_width, self.weight.shape, self.bias.shape, self.stride, self.padding
         )
 
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
-        self.conv1 = nn.Conv2d(1, 32, 3, 1)
-        self.conv2 = nn.Conv2d(32, 64, 3, 1)
+        self.conv1 = KHCppConv(1, 32, (3,3), 1)
+        self.conv2 = KHCppConv(32, 64, 3, 1)
         self.dropout1 = nn.Dropout2d(0.25)
         self.dropout2 = nn.Dropout2d(0.5)
         self.fc1 = KHCppLinear(9216, 128)
@@ -208,7 +260,7 @@ def main():
 
     with torch.autograd.profiler.profile(use_cuda=True) as prof:
         output = model(images[0].reshape(1,1,28,28))
-    print(prof) 
+    print(prof)
 
     print("Finished profiling.")
 
