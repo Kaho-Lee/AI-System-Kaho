@@ -41,6 +41,7 @@ from torch.optim.lr_scheduler import StepLR
 
 #import our c++ module
 import KHlinear_cuda
+import KHConv2d_cuda
 
 class KHLinearCudaFunction(torch.autograd.Function):
 
@@ -62,6 +63,26 @@ class KHLinearCudaFunction(torch.autograd.Function):
 
         grad_input, grad_weight, grad_bias = KHlinear_cuda.backward(grad_output, input, weight, bias)
         return grad_input, grad_weight, grad_bias
+
+class KHConvCudaFunction(torch.autograd.Function):
+
+    @staticmethod
+    def forward(ctx, input, weights, bias, dialation, stride, padding):
+        output, col_input = KHConv2d_cuda.forward(input, weights, bias, dialation, stride, padding)
+        ctx.save_for_backward(input, col_input, weights, bias, dialation, stride, padding)
+
+        return output
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        input, col_input, weights, bias, dialation, stride, padding = ctx.saved_tensors
+        grad_input = grad_weight = grad_bias = None
+
+        grad_input, grad_weight, grad_bias = KHConv2d_cuda.backward(grad_output, input, col_input,\
+            weights, bias, dialation, stride, padding)
+
+        return grad_input, grad_weight, grad_bias,\
+            torch.zeros_like(dialation),torch.zeros_like(stride), torch.zeros_like(padding)
 
 class KHCudaLinear(nn.Module):
 
@@ -86,18 +107,50 @@ class KHCudaLinear(nn.Module):
 
     def extra_repr(self):
         return 'input_features={}, output_features={}, bias={}'.format(
-            self.input_features, self.output_features, self.bias if self.bias is not None else None
+            self.input_features, self.output_features, self.bias.size() if self.bias is not None else None
+        )
+
+class KHCudaConv(nn.Module):
+
+    def __init__(self, input_chanel, output_chanel, kernel_size, name, dialation=1, stride=1, padding=0):
+        super(KHCudaConv, self).__init__()
+        self.input_chanel = input_chanel
+        self.output_chanel = output_chanel
+        if isinstance(kernel_size, int):
+            self.kernel_height =  torch.tensor(kernel_size, requires_grad=False)
+            self.kernel_width =  torch.tensor(kernel_size, requires_grad=False)
+        elif isinstance(kernel_size, tuple):
+            self.kernel_height =  torch.tensor(kernel_size[0], requires_grad=False)
+            self.kernel_width =  torch.tensor(kernel_size[1], requires_grad=False)
+        self.dialation = torch.tensor(dialation, requires_grad=False)
+        self.stride = torch.tensor(stride, requires_grad=False)
+        self.padding = torch.tensor(padding, requires_grad=False)
+
+        self.weight = nn.Parameter(torch.empty(self.output_chanel, self.input_chanel,\
+            self.kernel_height, self.kernel_width))
+        self.bias = nn.Parameter(torch.empty(self.output_chanel))
+
+        self.weight.data.uniform_(-0.1, 0.1)
+        self.bias.data.uniform_(-0.1, 0.1)
+
+        self.name = name
+        
+    def forward(self, input):
+        return KHConvCudaFunction.apply(input, self.weight, self.bias, self.dialation, self.stride, self.padding)
+
+    def extra_repr(self):
+        return '{} input_features={}, output_features={}, kernel_height={}, kernel_width={}, weight={} bias={} dialation={} stride={} padding={}'.format(
+            self.name, self.input_chanel, self.output_chanel, self.kernel_height, self.kernel_width, self.weight.shape, self.bias.shape, self.dialation, self.stride, self.padding
         )
 
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
-        self.conv1 = nn.Conv2d(1, 32, 3, 1)
-        self.conv2 = nn.Conv2d(32, 64, 3, 1)
-        self.dropout1 = nn.Dropout2d(0.25)
-        self.dropout2 = nn.Dropout2d(0.5)
+        self.conv1 = KHCudaConv(1, 32, 3, "conv1")
+        self.conv2 = KHCudaConv(32, 64, 3, "conv2")
+        self.dropout1 = nn.Dropout(0.25)
+        self.dropout2 = nn.Dropout(0.5)
         self.fc1 = KHCudaLinear(9216, 128)
-        # self.fc2 = nn.Linear(128, 10)
         self.fc2 = KHCudaLinear(128, 10)
 
     def forward(self, x):
@@ -145,7 +198,7 @@ def test(model, device, test_loader):
 
     test_loss /= len(test_loader.dataset)
 
-    print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
+    print('\nTest set: Average Loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
         test_loss, correct, len(test_loader.dataset),
         100. * correct / len(test_loader.dataset)))
 
@@ -195,6 +248,7 @@ def main():
         batch_size=args.test_batch_size, shuffle=True, **kwargs)
 
     model = Net().to(device)
+    print("model:", model)
     optimizer = optim.Adadelta(model.parameters(), lr=args.lr)
 
     scheduler = StepLR(optimizer, step_size=1, gamma=args.gamma)
@@ -205,7 +259,7 @@ def main():
     images, labels = next(dataiter)
     images, labels = images.to(device), labels.to(device)
 
-    with torch.autograd.profiler.profile(use_cuda=True) as prof:
+    with torch.autograd.profiler.profile(use_device = 'cuda') as prof:
         output = model(images[0].reshape(1,1,28,28))
     print(prof) 
 
