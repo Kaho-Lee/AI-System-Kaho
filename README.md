@@ -4,9 +4,9 @@
 
 本课程的中文名称设定为 **人工智能系统**，主要讲解支持人工智能的计算机系统设计，对应的英文课程名称为 **System for AI**。本课程中将交替使用以下词汇：**人工智能系统**，**AI-System** 和 **System for AI**。
 
-本课程为[微软人工智能教育与共建社区](https://github.com/microsoft/ai-edu)中规划的人工智能相关教程之一，在[A-基础教程](https://github.com/microsoft/ai-edu/tree/master/A-%E5%9F%BA%E7%A1%80%E6%95%99%E7%A8%8B)模块下，课程编号和名称为 *A6-人工智能系统*。
+本课程为[微软人工智能教育与共建社区](https://github.com/microsoft/ai-edu)中规划的人工智能相关教程之一，在[基础教程](https://github.com/microsoft/ai-edu/tree/master/%E5%9F%BA%E7%A1%80%E6%95%99%E7%A8%8B/)模块下，课程编号和名称为 *A6-人工智能系统*。
 
-欢迎访问[微软人工智能教育与共建社区](https://github.com/microsoft/ai-edu)的[A-基础教程](https://github.com/microsoft/ai-edu/tree/master/A-%E5%9F%BA%E7%A1%80%E6%95%99%E7%A8%8B)模块访问更多相关内容。
+欢迎访问[微软人工智能教育与共建社区](https://github.com/microsoft/ai-edu)的[A-基础教程](https://github.com/microsoft/ai-edu/tree/master/%E5%9F%BA%E7%A1%80%E6%95%99%E7%A8%8B/)模块访问更多相关内容。
 
 ## 人工智能系统课程设立背景
 
@@ -99,6 +99,13 @@
 ## 人工智能系统教材
 
 [《人工智能系统》](Textbook/README.md) 教材为[微软人工智能教育与共建社区](https://github.com/microsoft/ai-edu)中规划的人工智能相关教材之一。我们注意到，现在的大部分人工智能相关的教材，特别是深度学习和机器学习相关课程主要集中在相关理论、算法或者应用，与系统相关的教材并不多见。我们希望人工智能系统教材能让人工智能系统教育变得更加体系化和普适化，以共同促进人工智能与系统交叉人才的培养。
+
+纸质版教材《深度学习系统设计:理论与实践》已经出版，欢迎阅读！
+
+<div style="text-align: center;">
+<img src="imgs/Book.jpg" alt="深度学习系统设计:理论与实践" height="300"/>
+</div>
+
 
 ## 附录
 
